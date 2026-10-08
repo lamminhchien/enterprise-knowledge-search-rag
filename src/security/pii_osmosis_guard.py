@@ -80,7 +80,7 @@ class PIIOsmosisGuard:
 
 if __name__ == "__main__":
     guard = PIIOsmosisGuard()
-    raw_sample = "Customer Nguyen Van A (CCCD: 048192003849, Phone: 0935162424, Email: client@example.com) uploaded file."
+    raw_sample = "Customer Nguyen Van A (CCCD: 012345678901, Phone: 0905123456, Email: client@example.com) uploaded file."
     clean_text, tokens = guard.filter_and_tokenize(raw_sample)
     print("--- RAW TEXT ---")
     print(raw_sample)

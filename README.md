@@ -76,16 +76,16 @@ This framework implements **Security-by-Design Information Retrieval**, allowing
 * Replaces entities with deterministic cryptographic tokens (`[NATIONAL_ID_ID_A1D615D1]`).
 * Reversible lookup table is preserved exclusively in client-side ephemeral memory, ensuring the cloud vector index never stores plaintext PII.
 
-### 2. Ephemeral Orthogonal Cache Vault (Blinded Cosine Search)
+### 2. Ephemeral Orthogonal Cache Vault (Rotation-Based Embedding Obfuscation)
 * Derives a secret orthogonal transformation matrix $Q \in \mathbb{R}^{d \times d}$ via QR decomposition ($Q^T Q = I$).
 * Transforms embeddings: $\vec{v}' = Q \vec{v}$.
 * **Mathematical Isometry Guarantee:**
   $$\langle Q\vec{u}, Q\vec{v} \rangle = \vec{u}^T Q^T Q \vec{v} = \vec{u}^T I \vec{v} = \langle \vec{u}, \vec{v} \rangle$$
-* The server conducts exact nearest-neighbor searches in the rotated space without ever decoding the true embedding coordinates.
-* **Tamper-Evident Self-Destruction:** If session TTL expires or unauthorized tampering is detected, vectors collapse to Gaussian white noise $\mathcal{N}(0, I)$ (Zero-Entropy trap).
+* The server conducts exact nearest-neighbor searches in rotated coordinate space without direct exposure of canonical coordinates.
+* **Tamper-Evident Expiry & Decorrelation:** If session TTL expires, vectors collapse to uncorrelated Gaussian white noise $\mathcal{N}(0, I)$ destroying semantic retrieval.
 
 ### 3. Distributed PySpark Ingestion Pipeline
-* Implements distributed MapReduce data parallelism for high-throughput batch cleaning, tokenization, and metadata aggregation across large-scale document repositories.
+* Implements batch MapReduce text preprocessing and token profiling across document repositories, with local resilient fallback.
 
 ### 4. Hybrid Lexical-Semantic Retrieval with RRF
 * Fuses dense vector similarity with lexical keyword overlap using Reciprocal Rank Fusion:
@@ -93,18 +93,32 @@ This framework implements **Security-by-Design Information Retrieval**, allowing
 
 ---
 
+## 🛡️ Threat Model & Limitations
+
+Understanding the operational boundary of rotation-based obfuscation is critical:
+
+* **What it Protects Against (Passive Server Dumps):**
+  * Prevents direct linguistic/semantic coordinate reconstruction if the cloud vector database memory is scraped without the rotation key $Q$.
+  * Removes cleartext PII (IDs, Phones, Emails) from all cloud embeddings and prompt histories via client-side HMAC tokenization.
+* **What it Does NOT Protect Against (Cryptographic Boundaries):**
+  * **Preserved Geometric Geometry:** Because all inner products are mathematically identical, the geometric cluster topology of the embeddings remains intact.
+  * **Known-Plaintext / Procrustes Attacks:** An adversary with access to $\ge d$ known plaintext-embedding pairs $(v_i, Q v_i)$ can reconstruct $Q$ via Orthogonal Procrustes analysis.
+  * **Scope:** This architecture serves as an **in-memory obfuscation and defense-in-depth layer**, not semantic-preserving Homomorphic Encryption.
+
+---
+
 ## 📊 Quantitative Benchmarks (Information Retrieval)
 
-Measured over multi-query corporate compliance evaluation benchmarks:
+Measured over multi-query compliance benchmark evaluation:
 
-| Metric | Measured Score | Target Specification |
+| Metric | Measured Score | Specification Target |
 | :--- | :---: | :---: |
 | **Mean Reciprocal Rank (MRR@5)** | **0.8889** | $> 0.80$ |
 | **Precision@1 (Top-1 Accuracy)** | **85.0%** | $> 80.0\%$ |
-| **Mean Query Latency** | **< 1.0 ms** | $< 50.0\text{ ms}$ |
-| **P95 Query Latency** | **< 2.5 ms** | $< 100.0\text{ ms}$ |
+| **Mean Query Latency** | **< 1.0 ms** | $< 35.0\text{ ms}$ |
+| **P95 Query Latency** | **< 2.5 ms** | $< 50.0\text{ ms}$ |
 | **Cosine Preservation Error ($| \Delta |$)** | **$< 10^{-7}$** | Strictly Zero |
-| **Tamper Trap Noise Variance** | **$1.0139 \approx 1.0$** | Gaussian Noise $\sigma^2 = 1.0$ |
+| **Post-Expiry Decorrelation ($| \text{Sim} |$)** | **$< 0.05$** | Orthogonal Noise |
 
 ---
 

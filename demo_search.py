@@ -88,8 +88,8 @@ def main():
     retriever = HybridRetriever(vector_store, vault)
     rag_engine = RAGEngine(guard)
 
-    # Inbound test query with sensitive PII injected
-    test_query = "Nhân viên Nguyen Van A (CCCD 048192003849, Phone 0935162424) hỏi quy trình báo cáo khi nghi ngờ lộ dữ liệu là gì?"
+    # Inbound test query with sensitive PII injected (dummy test data)
+    test_query = "Nhân viên Nguyen Van A (CCCD 012345678901, Phone 0905123456) hỏi quy trình báo cáo khi nghi ngờ lộ dữ liệu là gì?"
     print(f"Raw Inbound Query: '{test_query}'")
 
     # Inbound sanitization
@@ -124,19 +124,26 @@ def main():
         print(f"  • {metric_name.upper()}: {val}")
 
     print("\n" + "=" * 75)
-    print("💥 [Step 6/6] Verifying Tamper-Evident Self-Destruction (Zero Entropy Trap)...")
+    print("💥 [Step 6/6] Verifying Tamper-Evident Expiry & Decorrelation Trap...")
     print("=" * 75)
     # Simulate an expired vault or unauthorized intrusion
     expired_vault = EphemeralOrthogonalVault(dim=dim, ttl_seconds=-1.0)  # Forced expired
     dummy_vector = np.ones((1, dim))
     trapped_output = expired_vault.encrypt_vector(dummy_vector)
     
-    # Calculate entropy/variance: trapped output collapses to Gaussian white noise
+    # Calculate noise variance: trapped output collapses to Gaussian white noise
     noise_variance = float(np.var(trapped_output))
     print(f"Session TTL expired -> Vector rotation self-destructed.")
-    print(f"Observation collapse verified: Trapped vector variance = {noise_variance:.4f} (Gaussian white noise trap active).")
+    print(f"Verification: Trapped vector variance = {noise_variance:.4f} (Gaussian white noise decorrelation active).")
 
-    print("\n✨ All 6 enterprise research steps executed flawlessly! System fully verified.\n")
+    # Assertions to guarantee test integrity
+    assert "012345678901" not in clean_query, "PII redaction failure: National ID leaked!"
+    assert "0905123456" not in clean_query, "PII redaction failure: Phone number leaked!"
+    assert len(hits) > 0, "Retrieval failed to return candidates!"
+    assert benchmark_metrics["mrr"] > 0.5, f"MRR degraded below threshold: {benchmark_metrics['mrr']}"
+    assert noise_variance > 0.5, "Noise variance check failed on expired vault!"
+
+    print("\n✓ All pipeline stages passed assertions successfully: System verified.\n")
 
 
 if __name__ == "__main__":
