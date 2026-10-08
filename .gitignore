@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv/
+env/
+venv/
+*.pt
+*.bin
+*.faiss
+*.sqlite
+.DS_Store
+.idea/
+.vscode/
+artifacts/
