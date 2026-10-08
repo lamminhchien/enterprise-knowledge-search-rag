@@ -132,7 +132,7 @@ pip install -r requirements.txt
 ```
 
 ### 2. Run 1-Click Master Demonstration
-Executes document loading, PySpark ETL, PII scrubbing, encrypted indexing, hybrid search, RAG synthesis, and tamper verification:
+Executes document loading, PySpark batch ETL, PII scrubbing, orthogonal rotation indexing, hybrid search, extractive RAG synthesis, and decorrelation verification:
 ```bash
 python demo_search.py
 ```
@@ -145,22 +145,45 @@ uvicorn api.app_fastapi:app --reload --port 8000
 * **Search Endpoint:** `POST /api/v1/search`
 * **RAG Endpoint:** `POST /api/v1/ask`
 
+### 4. Container Deployment (Docker)
+```bash
+docker build -t enterprise-rag:latest .
+docker run -p 8000:8000 enterprise-rag:latest
+```
+
+### 5. Enterprise C# Client Integration (.NET)
+A complete strongly-typed C# client is provided in `clients/csharp/EnterpriseSearchClient.cs` to integrate with .NET enterprise backends:
+```csharp
+var client = new EnterpriseSearchClient("http://localhost:8000");
+var result = await client.ExecuteSearchAsync("Quy định bảo mật thông tin và MFA");
+```
+
+### 6. Automated Unit Tests
+```bash
+python tests/test_search_pipeline.py
+```
+
 ---
 
 ## 📁 Repository Structure
 
 ```text
 enterprise-knowledge-search-rag/
+├── api/
+│   └── app_fastapi.py                 # FastAPI service endpoints
+├── clients/
+│   └── csharp/
+│       └── EnterpriseSearchClient.cs  # Strongly-typed C# REST client
 ├── data/
 │   └── raw_documents/                 # Sample corporate policies (IT SOP, Data Governance, AI Policy)
 ├── src/
 │   ├── data_ingestion/
 │   │   ├── document_loader.py         # File loader with provenance
 │   │   ├── text_chunker.py            # Sliding-window semantic chunker
-│   │   └── pyspark_batch_etl.py       # Distributed MapReduce batch pipeline
+│   │   └── pyspark_batch_etl.py       # Batch MapReduce preprocessing pipeline
 │   ├── security/
-│   │   ├── pii_osmosis_guard.py       # One-way privacy osmosis membrane (HMAC-SHA256)
-│   │   └── ephemeral_vault.py         # Ephemeral orthogonal vault with TTL & noise trap
+│   │   ├── pii_osmosis_guard.py       # PII redaction membrane (HMAC-SHA256)
+│   │   └── ephemeral_vault.py         # Ephemeral orthogonal vault with TTL & decorrelation
 │   ├── embeddings/
 │   │   └── dense_embedder.py          # PyTorch unit-normalized 384D embedder
 │   ├── vector_store/
@@ -168,11 +191,12 @@ enterprise-knowledge-search-rag/
 │   ├── retriever/
 │   │   └── hybrid_retriever.py        # Dense + Lexical Reciprocal Rank Fusion
 │   ├── generator/
-│   │   └── rag_engine.py              # Grounded RAG with source citations
+│   │   └── rag_engine.py              # Grounded extractive RAG with source citations
 │   └── evaluation/
 │       └── ir_evaluator.py            # IR benchmark (MRR, Precision@K, Latency)
-├── api/
-│   └── app_fastapi.py                 # FastAPI service endpoints
+├── tests/
+│   └── test_search_pipeline.py        # Comprehensive unit test suite
+├── Dockerfile                         # Production container definition
 ├── demo_search.py                     # Master end-to-end runnable demonstration
 ├── requirements.txt
 ├── .gitignore
