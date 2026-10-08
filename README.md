@@ -89,7 +89,7 @@ This framework implements **Security-by-Design Information Retrieval**, allowing
 
 ### 4. Hybrid Lexical-Semantic Retrieval with RRF
 * Fuses dense vector similarity with lexical keyword overlap using Reciprocal Rank Fusion:
-  $$\text{RRF\_Score}(d) = \sum_{m \in \{\text{Dense}, \text{Lexical}\}} \frac{1}{60 + \text{rank}_m(d)}$$
+  $$\mathrm{RRF}(d) = \sum_{m \in \{\mathrm{Dense},\, \mathrm{Lexical}\}} \frac{1}{60 + \mathrm{rank}_m(d)}$$
 
 ---
 
