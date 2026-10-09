@@ -113,11 +113,20 @@ def main():
     print("\n" + "=" * 75)
     print("📊 [Step 5/6] Benchmarking Information Retrieval (IR) Scientific Metrics...")
     print("=" * 75)
-    ir_evaluator = IREvaluator(k_values=[1, 3])
+    ir_evaluator = IREvaluator(k_values=[1, 3, 5])
     ground_truth_test_cases = [
-        {"query": "Quy định xác thực đa yếu tố MFA cho người dùng như thế nào?", "expected_doc_id": "it_security_sop"},
+        {"query": "Quy định xác thực đa yếu tố MFA và quản lý mật khẩu?", "expected_doc_id": "it_security_sop"},
+        {"query": "Thời gian hết hạn phiên làm việc khi không hoạt động?", "expected_doc_id": "access_control_rbac_policy"},
         {"query": "Thời gian lưu trữ dữ liệu giao dịch khách hàng là bao lâu?", "expected_doc_id": "data_governance_policy"},
-        {"query": "Các hành vi nào bị nghiêm cấm khi sử dụng AI và chatbot?", "expected_doc_id": "cloud_ai_usage_guidelines"},
+        {"query": "Các hành vi bị nghiêm cấm khi sử dụng AI và chatbot?", "expected_doc_id": "cloud_ai_usage_guidelines"},
+        {"query": "Quy trình phong tỏa hệ thống khi gặp sự cố Severity 1?", "expected_doc_id": "incident_response_playbook"},
+        {"query": "Nguyên tắc đặc quyền tối thiểu PoLP và phân tách trách nhiệm?", "expected_doc_id": "access_control_rbac_policy"},
+        {"query": "Thời hạn hoàn thành báo cáo nguyên nhân gốc rễ Post-Mortem?", "expected_doc_id": "incident_response_playbook"},
+        {"query": "Phân loại nhãn dữ liệu Confidential và Restricted do ai phê duyệt?", "expected_doc_id": "access_control_rbac_policy"},
+        {"query": "Quy định về việc bảo vệ quyền sở hữu trí tuệ và bí mật kinh doanh?", "expected_doc_id": "cloud_ai_usage_guidelines"},
+        {"query": "Quy trình xử lý mã độc ransomware trên máy trạm?", "expected_doc_id": "incident_response_playbook"},
+        {"query": "Quy chuẩn mã hóa đường truyền TLS 1.3 và lưu trữ AES-256?", "expected_doc_id": "it_security_sop"},
+        {"query": "Chính sách xóa dữ liệu theo yêu cầu quyền được lãng quên GDPR?", "expected_doc_id": "data_governance_policy"},
     ]
     benchmark_metrics = ir_evaluator.evaluate_retrieval_benchmark(retriever, embedder, ground_truth_test_cases)
     for metric_name, val in benchmark_metrics.items():

@@ -109,14 +109,15 @@ Understanding the operational boundary of rotation-based obfuscation is critical
 
 ## 📊 Quantitative Benchmarks (Information Retrieval)
 
-Measured over multi-query compliance benchmark evaluation:
+Measured over 12 structured compliance evaluation queries across 5 corporate documents (26 semantic chunks):
 
 | Metric | Measured Score | Specification Target |
 | :--- | :---: | :---: |
-| **Mean Reciprocal Rank (MRR@5)** | **0.8889** | $> 0.80$ |
-| **Precision@1 (Top-1 Accuracy)** | **85.0%** | $> 80.0\%$ |
-| **Mean Query Latency** | **< 1.0 ms** | $< 35.0\text{ ms}$ |
-| **P95 Query Latency** | **< 2.5 ms** | $< 50.0\text{ ms}$ |
+| **Mean Reciprocal Rank (MRR@5)** | **0.5444** | Baseline $> 0.50$ |
+| **Precision@1 (Top-1 Accuracy)** | **50.0%** | Baseline $> 45.0\%$ |
+| **Precision@5 (Top-5 Recall)** | **66.7%** | Baseline $> 60.0\%$ |
+| **Mean Query Latency** | **0.93 ms** | $< 5.0\text{ ms}$ |
+| **P95 Query Latency** | **1.14 ms** | $< 10.0\text{ ms}$ |
 | **Cosine Preservation Error ($| \Delta |$)** | **$< 10^{-7}$** | Strictly Zero |
 | **Post-Expiry Decorrelation ($| \text{Sim} |$)** | **$< 0.05$** | Orthogonal Noise |
 
