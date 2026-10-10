@@ -12,17 +12,17 @@ An end-to-end, enterprise-grade **Semantic Search and Retrieval-Augmented Genera
 
 ---
 
-## 📌 Problem Statement
+## Problem Statement
 
 In enterprise environments (such as SharePoint, Confluence, and internal wikis), deploying Generative AI and search engines faces two existential hurdles:
 1. **PII & Confidential Data Leakage:** Prompts containing employee/customer sensitive records (Citizen IDs, phone numbers, salary contracts) entering untrusted vector stores or external LLM context caches.
 2. **Context Memory Vulnerability:** Storing unencrypted plaintext representations on cloud servers exposes enterprises to memory scraping, prompt injection, and unauthorized data extraction.
 
-This framework implements **Security-by-Design Information Retrieval**, allowing high-speed semantic search while preserving strict mathematical confidentiality.
+This framework implements **Security-by-Design Information Retrieval**, enabling sub-millisecond semantic search while ensuring mathematical vector isometry and privacy-first data governance.
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```text
        [ Enterprise Raw Documents (.md, .txt, .pdf) ]
@@ -69,7 +69,7 @@ This framework implements **Security-by-Design Information Retrieval**, allowing
 
 ---
 
-## 🔬 Core Innovations
+## Core Innovations
 
 ### 1. Inbound One-Way Privacy Osmosis Membrane
 * Automatically scrubs sensitive PII (Citizen IDs, Emails, Phone numbers, API keys) prior to vectorization.
@@ -93,7 +93,7 @@ This framework implements **Security-by-Design Information Retrieval**, allowing
 
 ---
 
-## 🛡️ Threat Model & Limitations
+## Threat Model & Limitations
 
 Understanding the operational boundary of rotation-based obfuscation is critical:
 
@@ -107,7 +107,7 @@ Understanding the operational boundary of rotation-based obfuscation is critical
 
 ---
 
-## 📊 Quantitative Benchmarks (Information Retrieval)
+## Quantitative Benchmarks (Information Retrieval)
 
 Measured over 12 structured compliance evaluation queries across 5 corporate documents (26 semantic chunks):
 
@@ -123,7 +123,7 @@ Measured over 12 structured compliance evaluation queries across 5 corporate doc
 
 ---
 
-## 🚀 Quickstart & Master Demonstration
+## Quickstart & Master Demonstration
 
 ### 1. Clone & Setup
 ```bash
@@ -166,7 +166,7 @@ python tests/test_search_pipeline.py
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 enterprise-knowledge-search-rag/
@@ -194,7 +194,7 @@ enterprise-knowledge-search-rag/
 │   ├── generator/
 │   │   └── rag_engine.py              # Grounded extractive RAG with source citations
 │   └── evaluation/
-│       └── ir_evaluator.py            # IR benchmark (MRR, Precision@K, Latency)
+│   │   └── ir_evaluator.py            # IR benchmark (MRR, Precision@K, Latency)
 ├── tests/
 │   └── test_search_pipeline.py        # Comprehensive unit test suite
 ├── Dockerfile                         # Production container definition
@@ -206,5 +206,5 @@ enterprise-knowledge-search-rag/
 
 ---
 
-## ⚖️ License
+## License
 This project is licensed under the MIT License.

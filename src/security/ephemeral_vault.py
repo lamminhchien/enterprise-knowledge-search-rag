@@ -93,7 +93,7 @@ if __name__ == "__main__":
     print("=== EPHEMERAL ORTHOGONAL VAULT VERIFICATION ===")
     print(f"Dimension: {dim}D")
     print(f"Raw Cosine Similarity:       {raw_sim:.8f}")
-    print(f"Encrypted Cosine Similarity: {enc_sim:.8f}")
+    print(f"Rotated Cosine Similarity:   {enc_sim:.8f}")
     print(f"Numerical Error (|Diff|):    {err:.2e}")
     assert err < 1e-6, "Orthogonal isometry violated!"
-    print("✓ Mathematical Isometry Verified: Search on encrypted vectors is 100% identical!")
+    print("[VERIFIED] Mathematical Isometry Verified: Search on rotated vectors is mathematically identical.")

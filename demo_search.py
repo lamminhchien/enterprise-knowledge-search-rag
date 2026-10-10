@@ -37,7 +37,7 @@ def main():
     data_dir = os.path.join(root_dir, "data", "raw_documents")
 
     print("\n" + "=" * 75)
-    print("🚀 [Step 1/6] Ingesting Corporate Documents & Running PySpark Batch ETL...")
+    print("[Step 1/6] Ingesting Corporate Documents & Running PySpark Batch ETL...")
     print("=" * 75)
     loader = DocumentLoader(data_dir=data_dir)
     raw_docs = loader.load_documents()
@@ -53,7 +53,7 @@ def main():
     print(f"Segmented corpus into {len(corpus_chunks)} semantic chunks with overlap.")
 
     print("\n" + "=" * 75)
-    print("🛡️ [Step 2/6] Passing Chunks through One-Way Privacy Osmosis Membrane...")
+    print("[Step 2/6] Passing Chunks through One-Way Privacy Osmosis Membrane...")
     print("=" * 75)
     guard = PIIOsmosisGuard()
     sanitized_chunks = []
@@ -67,7 +67,7 @@ def main():
     print(f"Privacy Membrane active: Sanitized {len(sanitized_chunks)} chunks (Scrubbed PII entities: {total_scrubbed}).")
 
     print("\n" + "=" * 75)
-    print("🔐 [Step 3/6] Generating Embeddings & Building Ephemeral Orthogonal Index...")
+    print("[Step 3/6] Generating Embeddings & Building Ephemeral Orthogonal Index...")
     print("=" * 75)
     dim = 384
     embedder = DenseEmbedder(dim=dim)
@@ -80,10 +80,10 @@ def main():
     # Secure Orthogonal Rotation: v_enc = Q * v (Exact Cosine preservation, blinded values)
     encrypted_embeddings = vault.encrypt_vector(raw_embeddings)
     vector_store.add_vectors(encrypted_embeddings, sanitized_chunks)
-    print(f"FAISS/Vector Index populated with {len(sanitized_chunks)} encrypted 384D vectors.")
+    print(f"FAISS/Vector Index populated with {len(sanitized_chunks)} rotated 384D vectors.")
 
     print("\n" + "=" * 75)
-    print("🔍 [Step 4/6] Executing Hybrid Search & Grounded RAG with Simulated PII Query...")
+    print("[Step 4/6] Executing Hybrid Search & Grounded RAG with Simulated PII Query...")
     print("=" * 75)
     retriever = HybridRetriever(vector_store, vault)
     rag_engine = RAGEngine(guard)
@@ -111,7 +111,7 @@ def main():
     print(f"{rag_output['answer']}")
 
     print("\n" + "=" * 75)
-    print("📊 [Step 5/6] Benchmarking Information Retrieval (IR) Scientific Metrics...")
+    print("[Step 5/6] Benchmarking Information Retrieval (IR) Scientific Metrics...")
     print("=" * 75)
     ir_evaluator = IREvaluator(k_values=[1, 3, 5])
     ground_truth_test_cases = [
@@ -133,7 +133,7 @@ def main():
         print(f"  • {metric_name.upper()}: {val}")
 
     print("\n" + "=" * 75)
-    print("💥 [Step 6/6] Verifying Tamper-Evident Expiry & Decorrelation Trap...")
+    print("[Step 6/6] Verifying Tamper-Evident Expiry & Decorrelation Trap...")
     print("=" * 75)
     # Simulate an expired vault or unauthorized intrusion
     expired_vault = EphemeralOrthogonalVault(dim=dim, ttl_seconds=-1.0)  # Forced expired
@@ -152,7 +152,7 @@ def main():
     assert benchmark_metrics["mrr"] > 0.5, f"MRR degraded below threshold: {benchmark_metrics['mrr']}"
     assert noise_variance > 0.5, "Noise variance check failed on expired vault!"
 
-    print("\n✓ All pipeline stages passed assertions successfully: System verified.\n")
+    print("\n[VERIFIED] All pipeline stages passed assertions successfully: System verified.\n")
 
 
 if __name__ == "__main__":
