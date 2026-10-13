@@ -1,11 +1,13 @@
 """
 Hybrid Retriever with Ephemeral Orthogonal Security Integration.
-Merges Dense Semantic Cosine Search (in rotated space) with Sparse Keyword Matching using Reciprocal Rank Fusion (RRF).
+Merges Dense Semantic Cosine Search (in rotated space) with True Inverted Index Okapi BM25
+using Reciprocal Rank Fusion (RRF) across the entire corpus.
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Dict, Any, Optional
 import re
 import numpy as np
+from rank_bm25 import BM25Okapi
 
 from src.vector_store.faiss_index_manager import VectorIndexManager
 from src.security.ephemeral_vault import EphemeralOrthogonalVault
@@ -13,10 +15,10 @@ from src.security.ephemeral_vault import EphemeralOrthogonalVault
 
 class HybridRetriever:
     """
-    Dual-Channel Retriever:
-    Channel 1: Secure Dense Cosine Search via Ephemeral Orthogonal Vault.
-    Channel 2: Lexical Keyword Matching (BM25 term overlap proxy).
-    Fusion: Reciprocal Rank Fusion (RRF).
+    Genuine Dual-Channel Hybrid Retriever:
+    Channel 1: Secure Dense Cosine Search via Ephemeral Orthogonal Vault (FAISS / PyTorch).
+    Channel 2: Lexical Inverted Index Okapi BM25 over the complete document corpus.
+    Fusion: Reciprocal Rank Fusion (RRF k=60) combining independent global channel rankings.
     """
 
     def __init__(
@@ -28,15 +30,22 @@ class HybridRetriever:
         self.vector_manager = vector_manager
         self.vault = vault
         self.rrf_constant = rrf_constant
+        self._bm25_index: Optional[BM25Okapi] = None
+        self._bm25_corpus_map: List[Dict[str, Any]] = []
 
-    def _lexical_keyword_score(self, query: str, chunk_text: str) -> float:
-        """Computes normalized lexical token overlap score."""
-        query_words = set(re.findall(r"\b\w+\b", query.lower()))
-        chunk_words = set(re.findall(r"\b\w+\b", chunk_text.lower()))
-        if not query_words or not chunk_words:
-            return 0.0
-        intersection = query_words.intersection(chunk_words)
-        return len(intersection) / len(query_words)
+    def _tokenize(self, text: str) -> List[str]:
+        """Tokenizes text into lowercase alphanumeric terms for lexical indexing."""
+        return re.findall(r"\b\w+\b", text.lower())
+
+    def update_bm25_index(self):
+        """Builds or refreshes the global BM25Okapi inverted index from the vector store metadata."""
+        all_chunks = self.vector_manager._metadata_store
+        if not all_chunks:
+            return
+
+        self._bm25_corpus_map = list(all_chunks)
+        tokenized_corpus = [self._tokenize(chk["text"]) for chk in self._bm25_corpus_map]
+        self._bm25_index = BM25Okapi(tokenized_corpus)
 
     def retrieve(
         self,
@@ -44,41 +53,56 @@ class HybridRetriever:
         raw_query_vector: np.ndarray,
         top_k: int = 3,
         use_encrypted_vault: bool = True
-    ) -> List[Dict[str, any]]:
+    ) -> List[Dict[str, Any]]:
         """
-        Executes hybrid retrieval.
-        query: Text query string
-        raw_query_vector: 384D dense vector
+        Executes genuine dual-channel hybrid retrieval across the entire corpus.
         """
-        # Step 1: Secure Dense Semantic Search
+        all_chunks = self.vector_manager._metadata_store
+        total_docs = len(all_chunks)
+        if total_docs == 0:
+            return []
+
+        # Refresh BM25 index if corpus size changed
+        if self._bm25_index is None or len(self._bm25_corpus_map) != total_docs:
+            self.update_bm25_index()
+
+        rrf_scores: Dict[str, float] = {}
+        candidate_meta: Dict[str, Dict[str, Any]] = {}
+
+        for chk in all_chunks:
+            candidate_meta[chk["chunk_id"]] = chk
+
+        # -------------------------------------------------------------
+        # Channel 1: Secure Dense Semantic Search (Rotated Space)
+        # -------------------------------------------------------------
         if use_encrypted_vault:
-            # Vector is rotated into blinded orthogonal space
             search_vector = self.vault.encrypt_vector(raw_query_vector)
         else:
             search_vector = raw_query_vector
 
-        dense_candidates = self.vector_manager.search(search_vector, top_k=top_k * 2)
-
-        # Step 2: Lexical Scoring across retrieved candidate pool
-        rrf_scores: Dict[str, float] = {}
-        candidate_meta: Dict[str, Dict[str, any]] = {}
-
-        # Dense ranking contribution
+        # Retrieve dense ranking over the full corpus
+        dense_candidates = self.vector_manager.search(search_vector, top_k=total_docs)
         for rank, (meta, dense_sim) in enumerate(dense_candidates, start=1):
             chk_id = meta["chunk_id"]
-            candidate_meta[chk_id] = meta
             rrf_scores[chk_id] = rrf_scores.get(chk_id, 0.0) + (1.0 / (self.rrf_constant + rank))
 
-        # Lexical ranking contribution
-        lexical_sorted = sorted(
-            candidate_meta.items(),
-            key=lambda item: self._lexical_keyword_score(query, item[1]["text"]),
-            reverse=True
-        )
-        for rank, (chk_id, meta) in enumerate(lexical_sorted, start=1):
-            rrf_scores[chk_id] = rrf_scores.get(chk_id, 0.0) + (1.0 / (self.rrf_constant + rank))
+        # -------------------------------------------------------------
+        # Channel 2: Genuine Inverted Index Okapi BM25 Ranking
+        # -------------------------------------------------------------
+        tokenized_query = self._tokenize(query)
+        if self._bm25_index and tokenized_query:
+            bm25_scores = self._bm25_index.get_scores(tokenized_query)
+            # Rank all documents by BM25 score descending
+            bm25_ranked_indices = np.argsort(bm25_scores)[::-1]
+            for rank, idx in enumerate(bm25_ranked_indices, start=1):
+                # Only attribute score if document has non-zero BM25 match
+                if bm25_scores[idx] > 0.0:
+                    chk_id = self._bm25_corpus_map[idx]["chunk_id"]
+                    rrf_scores[chk_id] = rrf_scores.get(chk_id, 0.0) + (1.0 / (self.rrf_constant + rank))
 
-        # Sort by final fused RRF score
+        # -------------------------------------------------------------
+        # Rank Aggregation via Reciprocal Rank Fusion (RRF)
+        # -------------------------------------------------------------
         fused_ranking = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
 
         final_results = []

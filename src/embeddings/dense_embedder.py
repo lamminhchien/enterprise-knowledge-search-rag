@@ -58,7 +58,7 @@ class DenseEmbedder:
     Uses HuggingFace sentence-transformers if available; defaults to PyTorch Projector seamlessly.
     """
 
-    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2", dim: int = 384):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", dim: int = 384):
         self.dim = dim
         self._hf_model = None
         self._fallback_model = None
@@ -66,11 +66,11 @@ class DenseEmbedder:
         try:
             from sentence_transformers import SentenceTransformer
             self._hf_model = SentenceTransformer(model_name)
-            print(f"[DenseEmbedder] Initialized HuggingFace model: {model_name}")
-        except (ImportError, Exception):
+            print(f"[DenseEmbedder] Loaded production SentenceTransformer model: '{model_name}' (384D).")
+        except Exception as e:
             self._fallback_model = DeterministicSemanticProjector(embed_dim=self.dim)
             self._fallback_model.eval()
-            print("[DenseEmbedder] Operating on PyTorch Deterministic Semantic Projector (384D).")
+            print(f"[DenseEmbedder] Offline notice ({e}): Falling back to PyTorch Deterministic Semantic Projector.")
 
     @torch.no_grad()
     def embed_texts(self, texts: Union[str, List[str]]) -> np.ndarray:

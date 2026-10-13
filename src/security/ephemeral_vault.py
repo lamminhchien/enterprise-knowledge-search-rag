@@ -1,42 +1,67 @@
 """
 Ephemeral Orthogonal Cache Vault.
 Implements secret orthogonal matrix projection (Isometry preserving Cosine distance)
-and time-to-live (TTL) half-life expiry with zero-entropy noise collapse upon tampering.
+and time-to-live (TTL) expiry with decorrelation noise traps.
+
+FORMAL THREAT MODEL & MATHEMATICAL BOUNDARIES:
+---------------------------------------------
+1. Classification:
+   This module implements *Linear Obfuscation via the Orthogonal Lie Group O(d)*.
+   It is designed as defense-in-depth against *Passive In-Memory Scraping* (dumping unencrypted
+   embedding caches to reconstruct plaintext linguistic representations via embedding inversion).
+
+2. Mathematical Isometry Proof:
+   Let Q in R^{d x d} satisfy Q^T Q = I.
+   Inner product is strictly invariant:
+     <Q u, Q v> = (Q u)^T (Q v) = u^T Q^T Q v = u^T I v = <u, v>
+   Norm is strictly invariant: ||Q v|| = ||v||.
+   Therefore, Cosine Similarity is preserved with exact numerical precision:
+     Cosine(Q u, Q v) == Cosine(u, v).
+
+3. Known-Plaintext Attack (Procrustes Analysis) Boundary:
+   An active adversary possessing >= d linearly independent paired vectors (u_i, Q u_i)
+   can compute Q via Ordinary Least Squares / Orthogonal Procrustes (lstsq / SVD).
+   
+4. Mitigation Architecture:
+   - Dynamic Re-Keying: Q is never static across users or long intervals.
+   - Session Time-To-Live (TTL): Keys expire rapidly, preventing adversaries from accumulating
+     the rank-d paired observations necessary for Procrustes reconstruction.
+   - Noise Decay Trap: Expired sessions collapse vectors to Gaussian white noise N(0, I).
 """
 
 from typing import Tuple, Optional
 import time
+import secrets
 import numpy as np
 
 
 class EphemeralOrthogonalVault:
     """
-    Protects context vector embeddings via secret orthogonal rotation:
+    Blinds context vector embeddings via ephemeral orthogonal rotation:
         v_encrypted = Q * v
     Where Q^T * Q = I.
-    
-    Guarantees:
-        <Q * u, Q * v> == <u, v>  (Exact Cosine preservation for search)
-        v cannot be recovered without secret Q.
     """
 
     def __init__(self, dim: int = 384, ttl_seconds: float = 60.0, seed: Optional[int] = None):
         self.dim = dim
         self.ttl_seconds = ttl_seconds
         self.created_at = time.time()
-        
+
+        # Derive cryptographically secure seed if none provided
+        entropy_seed = seed if seed is not None else secrets.randbits(32)
+        rng = np.random.default_rng(entropy_seed)
+
         # Derive secret orthogonal matrix Q via QR decomposition of random Gaussian matrix
-        rng = np.random.default_rng(seed or int(time.time()))
         gaussian_matrix = rng.standard_normal((dim, dim))
         q_matrix, r_matrix = np.linalg.qr(gaussian_matrix)
-        
-        # Ensure positive diagonal in R to make Q unique and determinant +1 or -1
+
+        # Ensure positive diagonal in R to make Q uniquely defined and determinant +1 or -1
         diag_signs = np.diag(np.sign(np.diag(r_matrix)))
         self._q_matrix = q_matrix @ diag_signs  # Shape [dim, dim], strictly orthogonal
 
     @property
     def is_expired(self) -> bool:
-        """Checks if session TTL has exceeded its half-life window."""
+        """Checks if session TTL has exceeded its validity window."""
         return (time.time() - self.created_at) > self.ttl_seconds
 
     def encrypt_vector(self, vector: np.ndarray) -> np.ndarray:
@@ -45,6 +70,7 @@ class EphemeralOrthogonalVault:
         v_enc = Q @ v
         """
         assert vector.shape[-1] == self.dim, f"Dimension mismatch: expected {self.dim}, got {vector.shape[-1]}"
+        
         # If expired, trigger collapse to Gaussian white noise trap
         if self.is_expired:
             return np.random.normal(0.0, 1.0, size=vector.shape)
@@ -83,8 +109,8 @@ class EphemeralOrthogonalVault:
 
 if __name__ == "__main__":
     dim = 384
-    vault = EphemeralOrthogonalVault(dim=dim, ttl_seconds=30.0, seed=42)
-    
+    vault = EphemeralOrthogonalVault(dim=dim, ttl_seconds=30.0)
+
     # Generate 2 test vectors
     vec_a = np.random.randn(dim)
     vec_b = np.random.randn(dim)
