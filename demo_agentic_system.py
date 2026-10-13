@@ -94,7 +94,7 @@ def main():
     # -------------------------------------------------------------------------
     print_banner(2, "Inbound One-Way Privacy Osmosis (Salted HMAC-SHA256 Tokenization)")
     raw_prompt_with_pii = (
-        "Khách hàng Nguyen Van A (CCCD: 048098001234, SĐT: 0935162424, Email: nv_a@tech.com) "
+        "Khách hàng Nguyen Van A (CCCD: 012345678901, SĐT: 0901234567, Email: client_demo@example.com) "
         "yêu cầu kiểm tra quy trình khi phát hiện máy chủ nghi ngờ nhiễm mã độc."
     )
     print(f"Raw Input:  '{raw_prompt_with_pii}'")

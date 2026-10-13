@@ -44,7 +44,7 @@ class DocumentOCRTool:
                     f"HÓA ĐƠN GIÁ TRỊ GIA TĂNG / DỊCH VỤ CÔNG NGHỆ\n"
                     f"Đơn vị phát hành: CÔNG TY TNHH PHẦN MỀM SAIGON TECHNOLOGY\n"
                     f"Mã số thuế: 0311498721 | Ngày lập: 12/10/2026\n"
-                    f"Khách hàng: NGUYEN VAN A | CCCD: 048098001234 | SĐT: 0935162424\n"
+                    f"Khách hàng: NGUYEN VAN A | CCCD: 012345678901 | SĐT: 0901234567\n"
                     f"Nội dung: Bản quyền giải pháp Agentic AI & RAG Enterprise Pipeline\n"
                     f"Số tiền thanh toán: 150,000,000 VND (Một trăm năm mươi triệu đồng).\n"
                     f"Chữ ký số: VERIFIED_TOKEN_HMAC_SECURE\n"

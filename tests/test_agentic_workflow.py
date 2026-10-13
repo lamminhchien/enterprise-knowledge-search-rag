@@ -58,7 +58,7 @@ class TestAgenticSystem(unittest.TestCase):
         self.assertEqual(auth["status"], "success")
 
     def test_agent_full_lifecycle(self):
-        query = "Khách hàng Le Van C (CCCD 048098123456) hỏi về quy trình đối soát dữ liệu."
+        query = "Khách hàng Le Van C (CCCD 012345678901) hỏi về quy trình đối soát dữ liệu."
         state = self.agent.run(query, user_role="employee")
         self.assertTrue(state["is_safe"])
         self.assertIsNotNone(state["grounded_answer"])
